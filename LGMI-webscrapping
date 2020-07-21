@@ -1,6 +1,6 @@
 '''
 ---Peggy.H---
-Starting with simple samples about retrieving data from text, this file is for retrieving all the number of inventories in released by LGMI.
+Starting with simple samples about retrieving data from text, this file is for retrieving all the number of inventories released by LGMI.
 ***Source page: https://yanjiu.lgmi.com/yj_TT4A3_list.htm
 ***Data are published in each Friday, except for public holiday in China.
 Input: 1) (Optional) In "keyword_list", put the interested inventories, or other keywords you need.
