@@ -22,7 +22,7 @@ import os
 path = os.path.split(os.path.realpath("extract_text_no"))[0].replace("\\","/")
 
 # #Section 1: one text input
-input_text = "全国重点城市建材社会库存量为905.44万吨"
+input_text_s1 = "全国重点城市建材社会库存量为905.44万吨"
 pattern_s1 = "全国重点城市建材社会库存量为(\d+\.?\d*)"
 match_s1 = re.findall(pattern_s1, input_text_s1)[0]
 print(match_s1)
