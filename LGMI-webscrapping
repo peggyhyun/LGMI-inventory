@@ -1,0 +1,320 @@
+'''
+---Peggy.H---
+Starting with simple samples about retrieving data from text, this file is for retrieving all the number of inventories in released by LGMI.
+***Source page: https://yanjiu.lgmi.com/yj_TT4A3_list.htm
+***Data are published in each Friday, except for public holiday in China.
+Input: 1) (Optional) In "keyword_list", put the interested inventories, or other keywords you need.
+       2) (Optional) Pages 2 to 18 are available in the source page. By default, all the pages will be scraped.
+       In the "for loop" of the last section: for page in range(first page, last page +1), you can input the desirable first and last page.
+Output: An excel file with the number of inventories and the corresponding Chinese names.
+'''
+import requests
+import urllib.request
+import urllib.parse
+import urllib
+from lxml import etree
+import pandas as pd
+import matplotlib.pyplot as plt
+import re
+import os
+
+# #output file saving
+path = os.path.split(os.path.realpath("extract_text_no"))[0].replace("\\","/")
+
+# #Section 1: one text input
+input_text = "全国重点城市建材社会库存量为905.44万吨"
+pattern_s1 = "全国重点城市建材社会库存量为(\d+\.?\d*)"
+match_s1 = re.findall(pattern_s1, input_text_s1)[0]
+print(match_s1)
+
+# #Section 2: multipile text inputs
+input_str_s2 = "1. 全国钢材社会库存连续4周回升，建材库存上升速度有所加快，板材库存上升速度略有放缓目前全国钢材社会库存连续4周回升。据兰格钢铁云商平台监测数据显示：2020年7月17日，全国钢材社会库存指数为148.0点，比上周上升1.76%，较上周的上升速度有所加快1.23个百分点，比上月上升4.70%，比去年同期上升24.56%；其中建材社会库存指数为220.1点，比上周上升2.44%，较上周的上升速度有所加快2.25个百分点，比上月上升5.85%，比去年同期上升38.33%；板材社会库存指数为89.8点，比上周上升0.43%，较上周的上升速度略有放缓0.76个百分点，比上月上升2.51%，比去年同期上升4.08%。2. 线材库存由降转升，螺纹钢库存上升速度有所加快，盘螺库存下降速度明显加快；热轧卷板库存上升速度略有加快，冷轧库存下降速度略有加快，中厚板库存上升速度有所放缓据兰格钢铁云商平台监测数据显示：2020年7月17日，全国29个重点城市钢材社会库存量为1363.43万吨，比上周增加23.62万吨，上升1.76%，较上周的上升速度有所加快1.23个百分点；全国重点城市建材社会库存量为905.44万吨，比上周增加21.64万吨，上升2.44%，较上周的上升速度有所加快2.25个百分点；全国重点城市板材社会库存量为457.99万吨，比上周增加1.98万吨，上升0.43%，较上周的上升速度略有放缓0.76个百分点。从分品种来看：全国线材社会库存量为148.11万吨，比上周上升1.06%，由上周的下降转为上升，比上月下降0.96%，比去年同期上升14.35%；螺纹钢社会库存量为733.49万吨，比上周上升2.98%，较上周的上升速度有所加快1.79个百分点，比上月上升7.84%，比去年同期上升45.12%；盘螺社会库存量为23.84万吨，比上周下降4.80%，较上周的下降速度明显加快4.73个百分点，比上月下降7.22%，比去年同期上升21.54%；热轧卷板社会库存量为238.36万吨，比上周上升1.91%，较上周的上升速度略有加快0.04个百分点，比上月上升5.01%，比去年同期上升5.29%；冷轧卷板社会库存量为110.61万吨，比上周下降2.28%，较上周的下降速度略有加快0.62个百分点，比上月下降5.89%，比去年同期上升2.82%；中厚板社会库存量为109.02万吨，比上周上升0.07%，较上周的上升速度有所放缓2.74个百分点，比上月上升6.60%，比去年同期上升2.77%。"
+
+keyword_list_s2 = ["全国29个重点城市钢材社会库存量为",
+                "全国重点城市建材社会库存量为",
+                "全国重点城市板材社会库存量为",
+                "全国线材社会库存量为",
+                "螺纹钢社会库存量为",
+                "盘螺社会库存量为",
+                "热轧卷板社会库存量为",
+                "冷轧卷板社会库存量为",
+                "中厚板社会库存量为"
+]
+
+keyword_input_list_s2 = []
+for keyword_index in range(len(keyword_list_s2)):
+    keyword_input = keyword_list_s2[keyword_index]+'(\d+\.?\d*)'
+    keyword_input_list_s2.append(keyword_input)
+
+
+matched_list_s2 = []
+for i in keyword_input_list_s2:
+    matched_result = re.findall(i, input_str_s2)[0]
+    matched_list_s2.append(matched_result)
+# print(matched_list_s2)
+
+
+df_results_s2 = pd.DataFrame(matched_list_s2, index=keyword_list_s2, columns=['inventory, unit:10k ton'])
+print(df_results_s2)
+
+
+#Section 3: one url input
+search_url_s3 = 'https://info.lgmi.com/html/202007/17/9720.htm'
+resp_s3 = requests.get(search_url_s3)
+resp_s3.encoding = 'gbk'
+# print(resp.text)
+
+input_text_s3 = resp_s3.text
+pattern_s3 = "全国重点城市建材社会库存量为(\d+\.?\d*)"
+pattern_date_s3 = "发表日期：(\d{4}-\d{1,2}-\d{1,2})"
+match_results_s3 = re.findall(pattern_s3, input_text_s3)[0]
+match_date_s3 = re.findall(pattern_date_s3, input_text_s3)[0]
+print(match_date_s3, match_results_s3)
+
+
+#Section 4: multipile inputs with one link input
+search_url_s4 = 'https://yanjiu.lgmi.com/html/201906/10/2861.htm'
+resp_s4 = requests.get(search_url_s4)  #requests.get(search_url, headers=headers)
+resp_s4.encoding = 'gbk'
+# print(resp_s4.text)
+
+
+input_str_s4 = resp_s4.text
+
+keyword_list_s4 = ["全国29个重点城市钢材社会库存量为",
+                "全国重点城市建材社会库存量为",
+                "全国重点城市板材社会库存量为",
+                "全国线材社会库存量为",
+                "螺纹钢社会库存量为",
+                "盘螺社会库存量为",
+                "热轧卷板社会库存量为",
+                "冷轧卷板社会库存量为",
+                "中厚板社会库存量为"
+]
+
+keyword_input_list_s4 = []
+for keyword_index in range(len(keyword_list_s4)):
+    keyword_input = keyword_list_s4[keyword_index]+'(\d+\.?\d*)'
+    keyword_input_list_s4.append(keyword_input)
+
+
+matched_list_s4 = []
+for i in keyword_input_list_s4:
+    matched_result = re.findall(i, input_str_s4)[0]
+    matched_list_s4.append(matched_result)
+# print(matched_list)
+
+pattern_date_s4 = "发表日期：(\d{4}-\d{1,2}-\d{1,2})"
+match_date_s4 = re.findall(pattern_date_s4, input_str_s4)[0]
+# print(match_date)
+
+df_results_s4 = pd.DataFrame(matched_list_s4, index=keyword_list_s4, columns=['inventory, unit:10k ton '+str(match_date_s4)])
+print(df_results_s4)
+
+
+#Section 5: multipile link inputs (one page)
+#remark: Host may change in different pages, however, without using "header", this issues does not occur.
+url_s5='https://yanjiu.lgmi.com/yj_TT4A3_list.htm'
+resp_s5 = requests.get(url_s5)
+resp_s5.encoding = 'gbk'
+
+
+tree_s5 = etree.HTML(resp_s5.text)
+link_list_page1_s5 = []
+for link in tree_s5.xpath("//@href"):
+    if "//yanjiu.lgmi.com/html/" in link:
+        link_list_page1_s5.append("http:"+link)
+# print(link_list_page1)
+
+for link in link_list_page1_s5:
+    # print(link)
+    headers_s5 = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'Accpet-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'zh-HK,zh-CN;q=0.9,zh;q=0.8,en;q=0.7',
+        'Cache-Control': 'max-age=0',
+        'Cookie': 'lgmi=; Hm_lvt_4df7897ce5ff84810a1a7e9a1ace8249=1594993875; __utmz=118792214.1594995945.2.2.utmcsr=lgmi.com|utmccn=(referral)|utmcmd=referral|utmcct=/; __utma=118792214.853938840.1594993876.1594995945.1594998234.3; ASP.NET_SessionId=ogw1urywus5l4ljh5r22ojas',
+        'Host': 'yanjiu.lgmi.com', #changed
+        'Upgrade-Insecure-Requests': '1',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36',
+        'Connection': 'keep-alive',
+        # 'Referer': 'https://www.google.com/',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none', #changed
+        'Sec-Fetch-User': '?1'}
+    resp_s5 = requests.get(link, headers=headers_s5)
+    resp_s5.encoding = 'gbk'
+    # print(resp.text)
+
+
+    input_text_s5 = resp_s5.text.replace("<SPAN lang=EN-US>","").replace("</SPAN>", "")
+    keyword_list_s5 = ["全国29个重点城市钢材社会库存量为",
+                    "全国重点城市建材社会库存量为",
+                    "全国重点城市板材社会库存量为",
+                    "全国线材社会库存量为",
+                    "螺纹钢社会库存量为",
+                    "盘螺社会库存量为",
+                    "热轧卷板社会库存量为",
+                    "冷轧卷板社会库存量为",
+                    "中厚板社会库存量为"
+    ]
+
+
+    matched_list_s5 = []
+    for i in keyword_list_s5:
+        if i in input_text_s5:  #skip unuseful link, such as https://yanjiu.lgmi.com/html/201901/04/8934.htm
+            matched_result = re.findall(i+'(\d+\.?\d*)', input_text_s5)[0]
+            matched_list_s5.append(matched_result)
+    # print(matched_list_s5)
+
+    pattern_date_s5 = "发表日期：(\d{4}-\d{1,2}-\d{1,2})"
+    match_date_s5 = re.findall(pattern_date_s5, input_text_s5)[0]
+    # print(match_date_s5)
+
+    df_results_s5 = pd.DataFrame(matched_list_s5, index=keyword_list_s5, columns=['inventory, unit:10k ton '+str(match_date_s5)])
+    print(df_results_s5)
+    
+    
+#Section 6: multipile link inputs in multipile pages
+#available pages: from 2 to 18
+inventory_s6 = ["全国29个重点城市钢材社会库存量",
+                    "全国重点城市建材社会库存量",
+                    "全国重点城市板材社会库存量",
+                    "全国钢材社会库存量",
+                    "全国线材社会库存量",
+                    "螺纹钢社会库存量",
+                    "盘螺社会库存量",
+                    "热轧卷板社会库存量",
+                    "冷轧卷板社会库存量",
+                    "中厚板社会库存量",
+                    ]
+
+keyword_list_s6  = [i+"为" for i in inventory_s6]
+# print(keyword_list)
+
+
+def post_request(link_url, host_url):
+    headers = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'Accpet-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'zh-HK,zh-CN;q=0.9,zh;q=0.8,en;q=0.7',
+        'Cache-Control': 'max-age=0',
+        'Cookie': 'lgmi=; __utmz=118792214.1594995945.2.2.utmcsr=lgmi.com|utmccn=(referral)|utmcmd=referral|utmcct=/; Hm_lvt_4df7897ce5ff84810a1a7e9a1ace8249=1594993875,1595041444,1595087011,1595142622; __utma=118792214.853938840.1594993876.1595087011.1595142622.9; __utmc=118792214; __utmt=1; __utmt_~1=1; Hm_lpvt_4df7897ce5ff84810a1a7e9a1ace8249=1595143000; __utmb=118792214.9.10.1595142622',
+        'Host': host_url,  # changed
+        'Upgrade-Insecure-Requests': '1',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36',
+        'Connection': 'keep-alive',
+        # 'Referer': 'https://www.google.com/',
+        # 'If-None-Match': 'b632f995d3adcd1:0',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',  # changed, or "same-site"
+        'Sec-Fetch-User': '?1'}
+    # No need to use header here requests.get(link_url, headers=headers, timeout=(30, 30)), because no parameters input
+    # Parameters in header can be changed, such as, "Host". See the "if function" below.
+    resp = requests.get(link_url)
+    resp.encoding = 'gbk'
+    # print(resp.text)
+
+
+    input_text = resp.text.replace("<SPAN lang=EN-US>", "").replace("</SPAN>", "")
+    # print(input_text)
+
+
+    date_list = []
+    matched_list = []
+    keyword_found = []
+
+    if "发表日期" in resp.text:
+        pattern_date = "发表日期：(\d{4}-\d{1,2}-\d{1,2})"   #format of date: xxxx-xx-xx
+        match_date = re.findall(pattern_date, input_text)
+        if len(match_date) == 1:
+            date_list.append(match_date[0])
+
+        else:
+            pattern_date = "发表日期：(\d{4}/\d{1,2}/\d{1,2})"  #format of date: xxxx/xx/xx
+            date_list.append(re.findall(pattern_date, input_text)[0])
+        for i in keyword_list_s6:
+            if i in input_text:  # skip unuseful link, such as https://yanjiu.lgmi.com/html/201901/04/8934.htm
+                matched_result = re.findall(i + '(\d+\.?\d*)', input_text)[0]
+                matched_list.append(matched_result)
+                keyword_found.append(i.replace("为",""))
+    # print(date_list)
+
+
+    return matched_list, date_list, keyword_found
+
+
+results_all_s6 = pd.DataFrame(index=inventory_s6)
+
+for page in range(2,19):
+    url_s6 = 'https://yanjiu.lgmi.com/yj_TT4A3_list'+str(page)+'.htm'
+    resp_s6 = requests.get(url_s6)
+    resp_s6.encoding = 'gbk'
+    print(url_s6)
+    # print(resp_s6.text)
+
+    tree_s6 = etree.HTML(resp_s6.text)
+    link_list_page_s6 = []
+    for link in tree_s6.xpath("//@href"):
+        # print(link)
+        if "//yanjiu.lgmi.com/html/" in link:
+            link_list_page_s6.append("http:"+link)
+            # print(link)
+        if "//zhishu.lgmi.com/html/" in link:
+            link_list_page_s6.append("http:"+link)
+            # print(link)
+        if "//page.lgmi.com/html/" in link:
+            link_list_page_s6.append("http:"+link)
+            # print(link)
+    # print(link_list_page)
+
+    for link in link_list_page_s6:
+        # print(link)
+        resuls_n_s6, date_s6, keyword_found_s6 = post_request(link_url=link, host_url='yanjiu.lgmi.com')
+        # print(resuls_n, date, keyword_found)
+        # print(len(resuls_n))
+        if len(resuls_n_s6) != 0:
+            df_results_s6 = pd.DataFrame(resuls_n_s6, index=keyword_found_s6,
+                                      columns=[''.join(date_s6)])
+            df_results_s6[''.join(date_s6)] = pd.to_numeric(
+                df_results_s6[''.join(date_s6)])
+            results_all_s6 = pd.concat([results_all_s6, df_results_s6], axis=1)    #if !=0, no NAN is appended.
+            print(results_all_s6)
+        else:
+            resuls_n_s6, date_s6, keyword_found_s6 = post_request(link_url=link, host_url='zhishu.lgmi.com')
+            if len(resuls_n_s6) != 0:
+                df_results_s6 = pd.DataFrame(resuls_n_s6, index=keyword_found_s6,
+                                          columns=[''.join(date_s6)])
+                df_results_s6[''.join(date_s6)] = pd.to_numeric(
+                    df_results_s6[''.join(date_s6)])
+                results_all_s6 = pd.concat([results_all_s6, df_results_s6], axis=1)
+                print(results_all_s6)
+            else:
+                if len(resuls_n_s6) != 0:
+                    resuls_n_s6, date_s6, keyword_found_s6 = post_request(link_url=link, host_url='page.lgmi.com')
+                    df_results_s6 = pd.DataFrame(resuls_n_s6, index=keyword_found_s6,
+                                              columns=[''.join(date_s6)])
+                    df_results_s6[''.join(date_s6)] = pd.to_numeric(df_results_s6[''.join(date_s6)])
+                    results_all_s6 = pd.concat([results_all_s6, df_results_s6], axis=1)
+                    print(results_all_s6)
+
+
+
+
+# results_all = results_all
+print(results_all_s6)
+results_all_s6 = results_all_s6.transpose()
+results_all_s6 = results_all_s6.reindex(index=results_all_s6.index[::-1])
+
+output_file_s6 = path+'/extract_text_no'+str(len(results_all_s6))+'.xlsx'
+results_all_s6.to_excel(output_file_s6)
+
+
+
+plt.rcParams['font.sans-serif'] = ['KaiTi']
+plt.rcParams['font.serif'] = ['KaiTi']
+results_all_s6.plot()
+plt.show()
+
